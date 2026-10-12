@@ -1,0 +1,19 @@
+adminemail="admin@civic.gov"
+password="adminPassword123"
+                       
+# Create Department Officer
+officeremail="officer@civic.gov"
+password("officerPassword123")
+           
+            
+# Create Field Staff
+staffemail="staff@civic.gov"            
+password("staffPassword123")
+          
+            
+# Create test citizen
+citizenemail="jane@civic.gov"
+password("janePassword123")
+------------user login-----------
+varma@gmail.com
+varma@123

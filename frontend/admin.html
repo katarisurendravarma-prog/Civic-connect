@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Connect | Administration Console</title>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        /* Admin specific layout adjustments */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            color: var(--text-primary);
+        }
+        th, td {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 0.9rem;
+        }
+        th {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-secondary);
+        }
+        tr:hover {
+            background: rgba(255, 255, 255, 0.01);
+        }
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .chart-box {
+            height: 260px;
+            position: relative;
+        }
+        .active-tab {
+            background: var(--primary) !important;
+            color: #fff !important;
+            border-color: var(--primary) !important;
+        }
+        .action-tab-content button {
+            text-align: left;
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            width: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+        .action-tab-content button i {
+            font-size: 0.95rem;
+            width: 18px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Admin Authentication Container (Fallback if accessed directly without session) -->
+    <div id="admin-auth-screen" class="auth-container">
+        <div class="glass-card auth-card">
+            <div class="brand" style="justify-content: center; margin-bottom: 1.5rem;">
+                <div class="brand-icon" style="background: linear-gradient(135deg, var(--critical) 0%, var(--primary) 100%);"><i class="fa-solid fa-user-shield"></i></div>
+                <div class="brand-name">Admin Console</div>
+            </div>
+            <h2 class="auth-title">Authorized Sign In</h2>
+            <p class="auth-subtitle">Municipal Commissioner & Department Staff portal</p>
+            
+            <form id="admin-login-form">
+                <div class="form-group">
+                    <label class="form-label" for="admin-email">Staff ID or Email</label>
+                    <input class="form-control" type="text" id="admin-email" placeholder="admin@civic.gov" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="admin-password">Credentials</label>
+                    <input class="form-control" type="password" id="admin-password" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, var(--critical) 0%, var(--primary) 100%); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2); margin-top: 1.5rem;">
+                    Access Console <i class="fa-solid fa-lock"></i>
+                </button>
+            </form>
+
+            <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
+                <p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Quick Demo Fill</p>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                    <button type="button" class="btn-secondary" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; cursor: pointer;" onclick="document.getElementById('admin-email').value='admin@civic.gov'; document.getElementById('admin-password').value='adminPassword123';">
+                        <i class="fa-solid fa-crown" style="color: #f59e0b;"></i> Super Admin
+                    </button>
+                    <button type="button" class="btn-secondary" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; cursor: pointer;" onclick="document.getElementById('admin-email').value='officer@civic.gov'; document.getElementById('admin-password').value='officerPassword123';">
+                        <i class="fa-solid fa-building-user" style="color: var(--primary);"></i> Officer
+                    </button>
+                    <button type="button" class="btn-secondary" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; cursor: pointer;" onclick="document.getElementById('admin-email').value='staff@civic.gov'; document.getElementById('admin-password').value='staffPassword123';">
+                        <i class="fa-solid fa-person-digging" style="color: #10b981;"></i> Staff
+                    </button>
+                </div>
+            </div>
+
+            <p style="text-align: center; margin-top: 1.25rem; font-size: 0.85rem;">
+                <a href="index.html" style="color: var(--text-secondary); text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Return to Citizen Portal</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Admin Workspace Structure -->
+    <div id="admin-app-screen" class="app-container" style="display: none;">
+        <!-- Left Sidebar Navigation -->
+        <aside class="sidebar" style="border-right-color: rgba(239, 68, 68, 0.1);">
+            <div class="brand">
+                <div class="brand-icon" style="background: linear-gradient(135deg, var(--critical) 0%, var(--primary) 100%);"><i class="fa-solid fa-user-shield"></i></div>
+                <div class="brand-name">Admin Console</div>
+            </div>
+            <ul class="menu-list">
+                <li><a class="menu-item active" data-target="admin-section-dashboard"><i class="fa-solid fa-chart-line"></i> Analytics Overview</a></li>
+                <li><a class="menu-item" data-target="admin-section-complaints"><i class="fa-solid fa-list-check"></i> Manage Complaints</a></li>
+                <li><a class="menu-item" data-target="admin-section-map"><i class="fa-solid fa-map-location-dot"></i> Complaint Map</a></li>
+                <li><a class="menu-item" data-target="admin-section-departments"><i class="fa-solid fa-building-flag"></i> Departments & Staff</a></li>
+                <li><a class="menu-item" id="admin-logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Exit Console</a></li>
+            </ul>
+            <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--card-border); text-align: center;">
+                <button class="btn-primary" id="report-pdf-btn" style="background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-primary); box-shadow: none; font-size: 0.85rem; padding: 0.5rem 1rem;">
+                    <i class="fa-solid fa-file-pdf" style="color: var(--critical);"></i> Generate PDF Report
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Window Container -->
+        <main class="main-content">
+            <!-- Top Nav -->
+            <div class="top-nav">
+                <div>
+                    <h1 id="admin-page-title">Administrative Dashboard</h1>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">E-Governance and Smart City Resolution Panel</p>
+                </div>
+                <div class="user-profile-widget">
+                    <button id="admin-theme-toggle" class="theme-toggle-btn">
+                        <i class="fa-solid fa-sun" id="admin-theme-sun" style="display: none;"></i>
+                        <i class="fa-solid fa-moon" id="admin-theme-moon"></i>
+                    </button>
+                    <div class="avatar" id="admin-nav-avatar" style="background: linear-gradient(135deg, var(--critical) 0%, var(--primary) 100%);">A</div>
+                    <div style="text-align: left;" class="desktop-only">
+                        <p style="font-weight: 600; font-size: 0.95rem;" id="admin-nav-username">Super Admin</p>
+                        <p style="color: var(--text-muted); font-size: 0.8rem;" id="admin-nav-role">SuperAdmin</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Overview Panel -->
+            <section id="admin-section-dashboard" class="page-section">
+                <!-- Analytics Quick Actions Toolbar -->
+                <div class="glass-card" style="margin-bottom: 1.5rem; padding: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <h3 style="margin: 0; font-size: 1.1rem;"><i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> Analytics Control Panel</h3>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button type="button" class="btn-primary" onclick="scrollAndFocus('categoryChart')" style="font-size: 0.85rem; padding: 0.5rem 1rem; width: auto; margin:0;"><i class="fa-solid fa-chart-pie"></i> View Complaint Statistics</button>
+                            <button type="button" class="btn-primary" onclick="scrollAndFocus('departmentChart')" style="font-size: 0.85rem; padding: 0.5rem 1rem; width: auto; margin:0;"><i class="fa-solid fa-building-user"></i> View Department Performance</button>
+                            <button type="button" class="btn-primary" onclick="document.getElementById('report-pdf-btn').click()" style="font-size: 0.85rem; padding: 0.5rem 1rem; width: auto; background: var(--success); margin:0;"><i class="fa-solid fa-download"></i> Download Complaint Report</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Summary Stats Counters -->
+                <div class="stats-grid">
+                    <div class="glass-card stat-card">
+                        <div class="stat-info">
+                            <h3>Unassigned Tasks</h3>
+                            <p id="admin-stat-pending">0</p>
+                        </div>
+                        <div class="stat-icon pending"><i class="fa-solid fa-folder-open"></i></div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-info">
+                            <h3>In Progress</h3>
+                            <p id="admin-stat-progress">0</p>
+                        </div>
+                        <div class="stat-icon progress"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-info">
+                            <h3>Avg Resolution</h3>
+                            <p id="admin-stat-resolution-time">0h</p>
+                        </div>
+                        <div class="stat-icon resolved" style="background:rgba(59,130,246,0.15); color:var(--primary);"><i class="fa-solid fa-hourglass-end"></i></div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-info">
+                            <h3>CSAT Rating</h3>
+                            <p id="admin-stat-csat">0.0 ★</p>
+                        </div>
+                        <div class="stat-icon resolved"><i class="fa-solid fa-heart"></i></div>
+                    </div>
+                </div>
+
+                <!-- Charts Display Container -->
+                <div class="charts-container">
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> Complaint Categories</h3>
+                        <div class="chart-box">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-chart-simple" style="color: var(--secondary);"></i> Department Resolutions</h3>
+                        <div class="chart-box">
+                            <canvas id="departmentChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-chart-line" style="color: var(--success);"></i> Complaint Trends</h3>
+                        <div class="chart-box">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Heatmap Area Block -->
+                <div class="glass-card">
+                    <h2 style="margin-bottom: 1rem;"><i class="fa-solid fa-map-location-dot" style="color: var(--critical);"></i> City Complaint Density Heatmap</h2>
+                    <div id="admin-heatmap" class="map-widget" style="height: 400px;"></div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);"><i class="fa-solid fa-circle-nodes"></i> Identifies high-risk zones, repeating duplicate nodes, and geographical clusters. Large red dots reflect critical/piled concerns.</p>
+                </div>
+            </section>
+
+            <!-- Manage Complaints Registry Panel -->
+            <section id="admin-section-complaints" class="page-section" style="display: none;">
+                <div class="glass-card">
+                    <div class="filter-bar">
+                        <input class="form-control" type="text" id="admin-search" style="flex:1; min-width:200px;" placeholder="Search by ID, title, or address...">
+                        <select class="form-control" id="admin-filter-status" style="width:auto;">
+                            <option value="All">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Assigned">Assigned</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Reopened">Reopened</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                        <select class="form-control" id="admin-filter-priority" style="width:auto;">
+                            <option value="All">All Priorities</option>
+                            <option value="Critical">Critical</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                        <button type="button" class="btn-secondary" id="admin-switch-map-btn" style="width: auto; padding: 0.45rem 0.9rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-map-location-dot" style="color: var(--primary);"></i> View on Map
+                        </button>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Priority</th>
+                                    <th>Date Filed</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-complaints-table-body">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 3rem;">Loading complaints database registry...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dedicated Officers Complaint Map Panel -->
+            <section id="admin-section-map" class="page-section" style="display: none;">
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h2 style="font-size: 1.5rem; font-weight: 700; margin: 0;"><i class="fa-solid fa-map-location-dot" style="color: var(--primary);"></i> Officers Complaint Map & Field Dispatch</h2>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">Live geographic issue tracker with multi-layer Google Street View & Satellite Hybrid telemetry.</p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button type="button" class="btn-secondary" id="officer-map-gps-btn" style="padding: 0.45rem 0.9rem; font-size: 0.85rem; width: auto;">
+                                <i class="fa-solid fa-location-arrow"></i> Center My GPS
+                            </button>
+                            <button type="button" class="btn-secondary" id="officer-map-refresh-btn" style="padding: 0.45rem 0.9rem; font-size: 0.85rem; width: auto;">
+                                <i class="fa-solid fa-arrows-rotate"></i> Reload Map
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Map Quick Stats Chips -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); padding: 0.75rem 1rem; border-radius: 8px;">
+                            <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Total Plotted Pins</span>
+                            <h3 id="officer-map-stat-total" style="font-size: 1.4rem; margin: 0.2rem 0 0 0; color: var(--text-primary);">0</h3>
+                        </div>
+                        <div style="background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2); padding: 0.75rem 1rem; border-radius: 8px;">
+                            <span style="font-size: 0.75rem; color: #f87171; text-transform: uppercase;">Critical Urgency</span>
+                            <h3 id="officer-map-stat-critical" style="font-size: 1.4rem; margin: 0.2rem 0 0 0; color: var(--critical);">0</h3>
+                        </div>
+                        <div style="background: rgba(6,182,212,0.05); border: 1px solid rgba(6,182,212,0.2); padding: 0.75rem 1rem; border-radius: 8px;">
+                            <span style="font-size: 0.75rem; color: #22d3ee; text-transform: uppercase;">In Progress</span>
+                            <h3 id="officer-map-stat-progress" style="font-size: 1.4rem; margin: 0.2rem 0 0 0; color: var(--secondary);">0</h3>
+                        </div>
+                        <div style="background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.2); padding: 0.75rem 1rem; border-radius: 8px;">
+                            <span style="font-size: 0.75rem; color: #fbbf24; text-transform: uppercase;">Pending Review</span>
+                            <h3 id="officer-map-stat-pending" style="font-size: 1.4rem; margin: 0.2rem 0 0 0; color: var(--warning);">0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Map Filter Bar -->
+                    <div class="filter-bar" style="margin-bottom: 1rem;">
+                        <input class="form-control" type="text" id="officer-map-search" style="flex: 1; min-width: 180px;" placeholder="Search title, tracking ID, or street...">
+                        <select class="form-control" id="officer-map-status" style="width: auto;">
+                            <option value="All">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Assigned">Assigned</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Reopened">Reopened</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                        <select class="form-control" id="officer-map-priority" style="width: auto;">
+                            <option value="All">All Priorities</option>
+                            <option value="Critical">Critical</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                        <select class="form-control" id="officer-map-category" style="width: auto;">
+                            <option value="All">All Categories</option>
+                            <option value="Roads & Potholes">Roads & Potholes</option>
+                            <option value="Garbage Management">Garbage Management</option>
+                            <option value="Water Supply Issues">Water Supply Issues</option>
+                            <option value="Drainage Problems">Drainage Problems</option>
+                            <option value="Sewage Issues">Sewage Issues</option>
+                            <option value="Streetlight Failure">Streetlight Failure</option>
+                            <option value="Electricity Problems">Electricity Problems</option>
+                            <option value="Public Property Damage">Public Property Damage</option>
+                            <option value="Traffic Signal Issues">Traffic Signal Issues</option>
+                            <option value="Environmental Issues">Environmental Issues</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+
+                    <!-- Officer Interactive Complaint Map -->
+                    <div id="officer-complaint-map" class="map-widget" style="height: 520px; margin-bottom: 1rem;"></div>
+
+                    <!-- Legend -->
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; font-size: 0.8rem; color: var(--text-secondary); padding: 0.5rem 0;">
+                        <span><b>Marker Legend:</b></span>
+                        <span style="display: flex; align-items: center; gap: 0.35rem;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; display: inline-block;"></span> Critical</span>
+                        <span style="display: flex; align-items: center; gap: 0.35rem;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span> High</span>
+                        <span style="display: flex; align-items: center; gap: 0.35rem;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #06b6d4; display: inline-block;"></span> In Progress</span>
+                        <span style="display: flex; align-items: center; gap: 0.35rem;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #eab308; display: inline-block;"></span> Pending</span>
+                        <span style="display: flex; align-items: center; gap: 0.35rem;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Resolved</span>
+                        <span style="margin-left: auto; font-style: italic;">Tap any marker to inspect details or open Google Street View</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Detailed Complaint Action Panel (Hidden until triggered) -->
+            <section id="admin-section-complaint-action" class="page-section" style="display: none;">
+                <button type="button" class="btn-secondary" id="action-back-btn" style="margin-bottom: 1.5rem; padding: 0.5rem 1rem; width: auto; font-size: 0.9rem;">
+                    <i class="fa-solid fa-arrow-left"></i> Return to Registry
+                </button>
+                
+                <div class="dashboard-grid" style="grid-template-columns: 3fr 2fr;">
+                    <!-- Update Panel -->
+                    <div class="glass-card">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                            <div>
+                                <span id="action-unique-id" class="badge" style="background:var(--card-bg); border:1px solid var(--card-border); font-size:0.9rem; margin-bottom:0.5rem; display:inline-block;">CC-20260625-XXXX</span>
+                                <h2 id="action-title" style="font-size:1.6rem; font-weight:700;">Complaint Title</h2>
+                            </div>
+                            <span id="action-status-badge" class="badge">Pending</span>
+                        </div>
+                        
+                        <div class="complaint-subtitle" style="margin-bottom:1.5rem; border-bottom:1px solid var(--card-border); padding-bottom:1rem;">
+                            <span><b>Category:</b> <span id="action-category">Roads</span></span>
+                            <span><b>Priority:</b> <span id="action-priority-badge" class="badge">Medium</span></span>
+                            <span><b>Citizen:</b> <span id="action-citizen-name" style="color:var(--secondary);">Jane Doe</span></span>
+                        </div>
+
+                        <h4 style="margin-bottom:0.5rem;">Description</h4>
+                        <p id="action-description" style="line-height:1.6; margin-bottom:1.5rem; color:var(--text-secondary);"></p>
+
+                        <h4 style="margin-bottom:0.5rem;">Supporting Media Attached</h4>
+                        <div id="action-media-gallery" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:1rem; margin-bottom:1.5rem;"></div>
+
+                        <!-- Update fields form -->
+                        <form id="action-update-form" style="border-top:1px solid var(--card-border); padding-top:1.5rem; margin-top:1.5rem;">
+                            <h3 style="margin-bottom:1rem;"><i class="fa-solid fa-user-pen" style="color:var(--primary);"></i> Resolve & Escalate Actions</h3>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                                <div class="form-group">
+                                    <label class="form-label" for="action-set-dept">Assign Department</label>
+                                    <select class="form-control" id="action-set-dept">
+                                        <!-- Loaded dynamically -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="action-set-officer">Assign Field Officer</label>
+                                    <select class="form-control" id="action-set-officer">
+                                        <!-- Loaded dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                                <div class="form-group">
+                                    <label class="form-label" for="action-set-priority">Set Priority Level</label>
+                                    <select class="form-control" id="action-set-priority">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Critical">Critical</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="action-set-status">Update Status</label>
+                                    <select class="form-control" id="action-set-status">
+                                        <option value="Pending">Pending</option>
+                                        <option value="Assigned">Assigned</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Resolved">Resolved</option>
+                                        <option value="Reopened">Reopened</option>
+                                        <option value="Rejected">Rejected</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="action-remarks">Officer Remarks / Comments</label>
+                                <textarea class="form-control" id="action-remarks" placeholder="Provide action descriptions, delays, or resolution summaries..."></textarea>
+                            </div>
+
+                            <!-- Resolution Proof (Shown only if setting status to Resolved) -->
+                            <div class="form-group" id="resolution-proof-upload-section" style="display:none;">
+                                <label class="form-label">Upload Resolution Proof Image</label>
+                                <div id="resolution-upload-zone" class="upload-dropzone">
+                                    <i class="fa-solid fa-camera" style="font-size:2rem; color:var(--success); margin-bottom:0.5rem;"></i>
+                                    <p style="font-weight: 500;">Click to upload proof photo</p>
+                                    <input type="file" id="action-proof-file" style="display:none;" accept="image/*">
+                                </div>
+                                <div id="resolution-proof-preview" style="margin-top:1rem; max-width:200px; border-radius:6px; overflow:hidden;"></div>
+                            </div>
+
+                            <button type="submit" class="btn-primary" style="margin-top:1rem; background: linear-gradient(135deg, var(--success) 0%, var(--primary) 100%);">
+                                Update Case Parameters <i class="fa-solid fa-floppy-disk"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Right Side Maps and audit details -->
+                    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+                        <div class="glass-card">
+                            <h3 style="margin-bottom:1rem;"><i class="fa-solid fa-map-location" style="color:var(--primary);"></i> Geographical Location</h3>
+                            <div id="action-map" class="map-widget" style="height:200px; margin-bottom:0.5rem;"></div>
+                            <p id="action-address" style="font-size:0.85rem; text-align:center; color:var(--text-secondary);"></p>
+                            <button type="button" class="btn-secondary" id="action-streetview-btn" style="margin-top:0.5rem; width:100%; display:flex; align-items:center; justify-content:center; gap:0.5rem; font-size:0.85rem; background:rgba(234,67,53,0.1); border-color:rgba(234,67,53,0.3); color:#f87171;">
+                                <i class="fa-solid fa-street-view" style="color:#ea4335;"></i> Open Google Street View (360°)
+                            </button>
+                        </div>
+                        <div class="glass-card" style="flex:1;">
+                            <h3><i class="fa-solid fa-file-invoice" style="color:var(--primary);"></i> Case Audit Logs</h3>
+                            <div class="timeline-container" id="action-audit-logs">
+                                <!-- Dynamic audit nodes -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Action Center Card -->
+                <div class="glass-card" style="margin-top: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-toolbox" style="color: var(--primary);"></i> Case Action Center</h3>
+                    
+                    <!-- Categories Tabs -->
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; border-bottom: 1px solid var(--card-border); padding-bottom: 0.75rem;">
+                        <button type="button" class="btn-secondary active-tab" onclick="switchActionTab('comp-mgmt')" id="tab-btn-comp-mgmt" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; width: auto; margin:0;">Management</button>
+                        <button type="button" class="btn-secondary" onclick="switchActionTab('comm')" id="tab-btn-comm" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; width: auto; margin:0;">Communication</button>
+                        <button type="button" class="btn-secondary" onclick="switchActionTab('evidence')" id="tab-btn-evidence" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; width: auto; margin:0;">Evidence & Verification</button>
+                        <button type="button" class="btn-secondary" onclick="switchActionTab('tracking')" id="tab-btn-tracking" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; width: auto; margin:0;">Tracking & Print</button>
+                        <button type="button" class="btn-secondary" onclick="switchActionTab('escalation')" id="tab-btn-escalation" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; width: auto; margin:0;">Escalation & Risks</button>
+                    </div>
+
+                    <!-- Category Contents -->
+                    <!-- 1. Complaint Management -->
+                    <div id="action-tab-comp-mgmt" class="action-tab-content">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;">
+                            <button type="button" class="btn-secondary" onclick="triggerAction('view-complaint')"><i class="fa-solid fa-eye"></i> View Complaint Info</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('accept-complaint')" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: var(--success);"><i class="fa-solid fa-check"></i> Accept Complaint</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('reject-complaint')" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.2); color: var(--critical);"><i class="fa-solid fa-xmark"></i> Reject Complaint</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('assign-dept')"><i class="fa-solid fa-building-circle-arrow-right"></i> Assign Department</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('assign-staff')"><i class="fa-solid fa-user-check"></i> Assign Field Staff</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('transfer-complaint')"><i class="fa-solid fa-right-left"></i> Transfer Complaint</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('priority-low')"><i class="fa-solid fa-chevron-down" style="color:var(--text-muted);"></i> Priority: Low</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('priority-medium')"><i class="fa-solid fa-minus" style="color:var(--primary);"></i> Priority: Medium</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('priority-high')"><i class="fa-solid fa-chevron-up" style="color:var(--warning);"></i> Priority: High</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('priority-critical')" style="color:var(--critical); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> Priority: Critical</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('mark-review')"><i class="fa-solid fa-magnifying-glass"></i> Mark Under Review</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('mark-progress')"><i class="fa-solid fa-spinner fa-spin"></i> Mark In Progress</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('mark-resolved')"><i class="fa-solid fa-clipboard-check"></i> Mark Resolved</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('reopen-complaint')"><i class="fa-solid fa-arrow-rotate-left"></i> Reopen Complaint</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('close-complaint')"><i class="fa-solid fa-circle-xmark"></i> Close Complaint</button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Communication -->
+                    <div id="action-tab-comm" class="action-tab-content" style="display:none;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;">
+                            <button type="button" class="btn-secondary" onclick="triggerAction('contact-citizen')"><i class="fa-solid fa-phone"></i> Contact Citizen</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('send-notification')"><i class="fa-solid fa-bell"></i> Send Notification</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('request-info')"><i class="fa-solid fa-circle-question"></i> Request Additional Info</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('reply-citizen')"><i class="fa-solid fa-reply"></i> Reply to Citizen</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Evidence & Verification -->
+                    <div id="action-tab-evidence" class="action-tab-content" style="display:none;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;">
+                            <button type="button" class="btn-secondary" onclick="triggerAction('view-images')"><i class="fa-solid fa-images"></i> View Uploaded Images</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('upload-proof')"><i class="fa-solid fa-camera"></i> Upload Resolution Proof</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('upload-photos')"><i class="fa-solid fa-upload"></i> Upload Work Photos</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('verify-location')"><i class="fa-solid fa-location-crosshairs"></i> Verify Complaint Location</button>
+                        </div>
+                    </div>
+
+                    <!-- 4. Tracking & Print -->
+                    <div id="action-tab-tracking" class="action-tab-content" style="display:none;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;">
+                            <button type="button" class="btn-secondary" onclick="triggerAction('view-history')"><i class="fa-solid fa-clock-rotate-left"></i> View Complaint History</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('track-status')"><i class="fa-solid fa-route"></i> Track Status</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('view-gps')"><i class="fa-solid fa-map-pin"></i> View GPS Location</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('generate-report')"><i class="fa-solid fa-file-invoice"></i> Generate Report</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('print-details')"><i class="fa-solid fa-print"></i> Print Complaint Details</button>
+                        </div>
+                    </div>
+
+                    <!-- 5. Escalation & Risks -->
+                    <div id="action-tab-escalation" class="action-tab-content" style="display:none;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;">
+                            <button type="button" class="btn-secondary" onclick="triggerAction('escalate-officer')"><i class="fa-solid fa-angles-up"></i> Escalate to Senior Officer</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('forward-dept')"><i class="fa-solid fa-building-circle-arrow-right"></i> Forward to Another Department</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('mark-emergency')" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.2); color: var(--critical);"><i class="fa-solid fa-fire-extinguisher"></i> Mark as Emergency</button>
+                            <button type="button" class="btn-secondary" onclick="triggerAction('flag-duplicate')"><i class="fa-solid fa-clone"></i> Flag Duplicate Complaint</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Departments & Staff Management Panel -->
+            <section id="admin-section-departments" class="page-section" style="display: none;">
+                <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+                    <!-- Department list -->
+                    <div class="glass-card">
+                        <h2 style="margin-bottom:1.5rem;"><i class="fa-solid fa-building-shield" style="color:var(--primary);"></i> Municipal Departments</h2>
+                        <div id="admin-departments-list" style="display:flex; flex-direction:column; gap:1rem;">
+                            <!-- Dynamically loaded -->
+                        </div>
+                    </div>
+                    
+                    <!-- Staff list -->
+                    <div class="glass-card">
+                        <h2 style="margin-bottom:1.5rem;"><i class="fa-solid fa-users-gear" style="color:var(--primary);"></i> Registered Field Staff & Officers</h2>
+                        <div id="admin-staff-list" style="display:flex; flex-direction:column; gap:1rem;">
+                            <!-- Dynamically loaded -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/config.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

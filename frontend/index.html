@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Connect | Smart Civic Management</title>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- 1. Authentication Screens Container -->
+    <div id="auth-screen" class="auth-container">
+        <!-- Login Card -->
+        <div id="login-card" class="glass-card auth-card">
+            <div class="brand" style="justify-content: center; margin-bottom: 1.5rem;">
+                <div class="brand-icon"><i class="fa-solid fa-users-line"></i></div>
+                <div class="brand-name">Citizen Connect</div>
+            </div>
+            <h2 class="auth-title">Welcome Back</h2>
+            <p class="auth-subtitle">Sign in to report and track civic issues</p>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="login-email">Email or Phone Number</label>
+                    <input class="form-control" type="text" id="login-email" placeholder="enter email or phone" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="login-password">Password</label>
+                    <input class="form-control" type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">
+                    Sign In <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div style="display: flex; align-items: center; justify-content: center; margin: 1.25rem 0; gap: 0.5rem; color: var(--text-secondary); font-size: 0.85rem;">
+                <div style="flex: 1; height: 1px; background: var(--card-border);"></div>
+                <span>or</span>
+                <div style="flex: 1; height: 1px; background: var(--card-border);"></div>
+            </div>
+
+            <button type="button" id="google-login-btn" class="btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem; font-weight: 600; background: var(--input-bg); border-color: var(--card-border); color: var(--text-primary);">
+                <i class="fa-brands fa-google" style="color: #ea4335; font-size: 1.1rem;"></i> Continue with Google
+            </button>
+
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                Don't have an account? <span id="to-register" style="color: var(--primary); cursor: pointer; font-weight: 600;">Register Here</span>
+            </p>
+            <p style="text-align: center; margin-top: 0.5rem; font-size: 0.85rem;">
+                <span id="to-forgot" style="color: var(--text-secondary); cursor: pointer; text-decoration: underline;">Forgot password?</span>
+            </p>
+            <div style="text-align: center; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
+                <a href="admin.html" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500;">
+                    <i class="fa-solid fa-user-shield" style="color: var(--primary);"></i> Admin & Official Login &rarr;
+                </a>
+            </div>
+        </div>
+
+        <!-- Register Card -->
+        <div id="register-card" class="glass-card auth-card" style="display: none;">
+            <div class="brand" style="justify-content: center; margin-bottom: 1.5rem;">
+                <div class="brand-icon"><i class="fa-solid fa-users-line"></i></div>
+                <div class="brand-name">Citizen Connect</div>
+            </div>
+            <h2 class="auth-title">Create Account</h2>
+            <p class="auth-subtitle">Join us in building a smart community</p>
+            
+            <form id="register-form">
+                <div class="form-group">
+                    <label class="form-label" for="reg-name">Full Name</label>
+                    <input class="form-control" type="text" id="reg-name" placeholder="John Doe" required autocomplete="name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-email">Email Address</label>
+                    <input class="form-control" type="email" id="reg-email" placeholder="john@example.com" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-phone">Phone Number</label>
+                    <input class="form-control" type="tel" id="reg-phone" placeholder="9998887776" required autocomplete="tel">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-password">Password</label>
+                    <input class="form-control" type="password" id="reg-password" placeholder="••••••••" required autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-address">Resident Address</label>
+                    <input class="form-control" type="text" id="reg-address" placeholder="Flat, Street, Ward, Area" required autocomplete="street-address">
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top: 1rem;">
+                    Submit Registration <i class="fa-solid fa-user-plus"></i>
+                </button>
+            </form>
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                Already have an account? <span id="to-login" style="color: var(--primary); cursor: pointer; font-weight: 600;">Sign In</span>
+            </p>
+        </div>
+
+        <!-- OTP Verification Card -->
+        <div id="otp-card" class="glass-card auth-card" style="display: none;">
+            <div class="brand" style="justify-content: center; margin-bottom: 1.5rem;">
+                <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="brand-name">OTP Verification</div>
+            </div>
+            <h2 class="auth-title">Verify Contact</h2>
+            <p class="auth-subtitle">We have sent a verification code to <span id="otp-email-display" style="font-weight: 600;">your email</span></p>
+            
+            <form id="otp-form">
+                <div class="form-group">
+                    <label class="form-label" for="otp-code">6-Digit Verification Code</label>
+                    <input class="form-control" type="text" id="otp-code" placeholder="123456" maxlength="6" style="text-align: center; letter-spacing: 8px; font-size: 1.5rem;" required>
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">
+                    Verify Account <i class="fa-solid fa-circle-check"></i>
+                </button>
+            </form>
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                Didn't receive the code? <span id="resend-otp-btn" style="color: var(--primary); cursor: pointer; font-weight: 600;">Resend OTP</span>
+            </p>
+        </div>
+
+        <!-- Forgot Password Card -->
+        <div id="forgot-card" class="glass-card auth-card" style="display: none;">
+            <div class="brand" style="justify-content: center; margin-bottom: 1.5rem;">
+                <div class="brand-icon"><i class="fa-solid fa-key"></i></div>
+                <div class="brand-name">Reset Password</div>
+            </div>
+            <h2 class="auth-title">Recover Password</h2>
+            <p class="auth-subtitle">Verify your email address to reset access</p>
+            
+            <form id="forgot-form">
+                <div class="form-group">
+                    <label class="form-label" for="forgot-email">Account Email Address</label>
+                    <input class="form-control" type="email" id="forgot-email" placeholder="yourname@gmail.com" required>
+                </div>
+                <div id="forgot-otp-section" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label" for="forgot-otp">OTP Code</label>
+                        <input class="form-control" type="text" id="forgot-otp" placeholder="123456">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="forgot-new-password">New Password</label>
+                        <input class="form-control" type="password" id="forgot-new-password" placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" id="forgot-submit-btn" class="btn-primary" style="margin-top: 1.5rem;">
+                    Send Reset Code <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                Back to <span id="forgot-back-to-login" style="color: var(--primary); cursor: pointer; font-weight: 600;">Sign In</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- 2. Application Dashboard Structure -->
+    <div id="app-screen" class="app-container" style="display: none;">
+        <!-- Left Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon"><i class="fa-solid fa-users-line"></i></div>
+                <div class="brand-name">Citizen Connect</div>
+            </div>
+            <ul class="menu-list" style="gap: 0.25rem;">
+                <li><a class="menu-item active" data-target="section-dashboard"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                <li><a class="menu-item" data-target="section-submit"><i class="fa-solid fa-file-pen"></i> Register Complaint</a></li>
+                <li><a class="menu-item" data-target="section-my-complaints"><i class="fa-solid fa-location-crosshairs"></i> Track Complaints</a></li>
+                <li><a class="menu-item" data-target="section-map"><i class="fa-solid fa-map-location-dot"></i> Complaint Map</a></li>
+                <li><a class="menu-item" data-target="section-notifications"><i class="fa-solid fa-bell"></i> Notifications <span id="notif-badge-count" class="badge" style="background: var(--critical); color:#fff; border-radius: 50%; padding: 2px 6px; display: none;">0</span></a></li>
+                <li><a class="menu-item" data-target="section-feedback"><i class="fa-solid fa-star"></i> Feedback & Ratings</a></li>
+                <li><a class="menu-item" data-target="section-ai-assistant"><i class="fa-solid fa-robot"></i> AI Assistant</a></li>
+                <li><a class="menu-item" data-target="section-history"><i class="fa-solid fa-chart-bar"></i> Complaint History</a></li>
+                <li><a class="menu-item" data-target="section-profile"><i class="fa-solid fa-user"></i> Profile</a></li>
+                <li><a class="menu-item" data-target="section-settings"><i class="fa-solid fa-gear"></i> Settings</a></li>
+                <li><a class="menu-item" data-target="section-help"><i class="fa-solid fa-circle-question"></i> Help & Support</a></li>
+                <li><a class="menu-item" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Window Container -->
+        <main class="main-content">
+            <!-- Top Navigation / Profile bar -->
+            <div class="top-nav">
+                <div>
+                    <h1 id="page-title">Citizen Dashboard</h1>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Empowering clean, safe, and smart cities</p>
+                </div>
+                <div class="user-profile-widget">
+                    <button id="theme-toggle" class="theme-toggle-btn">
+                        <i class="fa-solid fa-sun" id="theme-sun" style="display: none;"></i>
+                        <i class="fa-solid fa-moon" id="theme-moon"></i>
+                    </button>
+                    <div class="avatar" id="nav-avatar">C</div>
+                    <div style="text-align: left; display: none;" class="desktop-only">
+                        <p style="font-weight: 600; font-size: 0.95rem;" id="nav-username">Jane Doe</p>
+                        <p style="color: var(--text-muted); font-size: 0.8rem;">Citizen Account</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Sections -->
+            <!-- A. Dashboard Overview Section -->
+            <section id="section-dashboard" class="page-section">
+                <!-- Stat Cards -->
+                <div class="stats-grid">
+                    <div class="glass-card stat-card">
+                        <div class="stat-info">
+                            <h3>Total Filed</h3>
+                            <p id="stat-total">0</p>
+                        </div>
+                        <div class="stat-icon progress"><i class="fa-solid fa-file-invoice"></i></div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-info">
+                            <h3>Awaiting Action</h3>
+                            <p id="stat-pending">0</p>
+                        </div>
+                        <div class="stat-icon pending"><i class="fa-solid fa-hourglass-half"></i></div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-info">
+                            <h3>In Resolution</h3>
+                            <p id="stat-progress">0</p>
+                        </div>
+                        <div class="stat-icon progress"><i class="fa-solid fa-bars-progress"></i></div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-info">
+                            <h3>Fully Resolved</h3>
+                            <p id="stat-resolved">0</p>
+                        </div>
+                        <div class="stat-icon resolved"><i class="fa-solid fa-circle-check"></i></div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Leaflet Geolocation Map -->
+                    <div class="glass-card">
+                        <h2 style="margin-bottom: 1rem;"><i class="fa-solid fa-map-location-dot" style="color: var(--primary);"></i> Active Civic Issues Map</h2>
+                        <div id="citizen-map" class="map-widget"></div>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary);"><i class="fa-solid fa-circle-info"></i> Double-click on any map location pin to check local resolutions or tap the 'File Complaint' tab to register a new concern.</p>
+                    </div>
+
+                    <!-- Recent Complaints Panel -->
+                    <div class="glass-card" style="display: flex; flex-direction: column;">
+                        <h2 style="margin-bottom: 1rem;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i> Recent Reports</h2>
+                        <div id="recent-list" style="flex: 1; overflow-y: auto; max-height: 350px;">
+                            <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No complaints filed yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- B. Submit Complaint Section -->
+            <section id="section-submit" class="page-section" style="display: none;">
+                <div class="dashboard-grid" style="grid-template-columns: 3fr 2fr;">
+                    <!-- Submission Form -->
+                    <div class="glass-card">
+                        <h2 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-file-pen" style="color: var(--primary);"></i> Register New Complaint</h2>
+                        <form id="submit-complaint-form">
+                            <div class="form-group">
+                                <label class="form-label" for="comp-title">Short Title / Subject</label>
+                                <input class="form-control" type="text" id="comp-title" placeholder="e.g. Broken pipe flooding Sector 2 road" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="comp-desc">Detailed Description</label>
+                                <textarea class="form-control" id="comp-desc" placeholder="Provide as many details as possible. Our smart system will automatically predict the category and priority levels from your description." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="comp-category">Issue Category</label>
+                                <select class="form-control" id="comp-category">
+                                    <option value="Detect Automatically">Auto-Detect via AI</option>
+                                    <option value="Roads & Potholes">Roads & Potholes</option>
+                                    <option value="Garbage Management">Garbage Management</option>
+                                    <option value="Water Supply Issues">Water Supply Issues</option>
+                                    <option value="Drainage Problems">Drainage Problems</option>
+                                    <option value="Sewage Issues">Sewage Issues</option>
+                                    <option value="Streetlight Failure">Streetlight Failure</option>
+                                    <option value="Electricity Problems">Electricity Problems</option>
+                                    <option value="Public Property Damage">Public Property Damage</option>
+                                    <option value="Traffic Signal Issues">Traffic Signal Issues</option>
+                                    <option value="Environmental Issues">Environmental Issues</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Supporting Pictures/Media</label>
+                                <div id="upload-zone" class="upload-dropzone">
+                                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                                    <p style="font-weight: 500;">Drag & Drop or Click to Upload Images</p>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Supports JPG, PNG, GIF up to 10MB</p>
+                                    <input type="file" id="comp-files" style="display: none;" multiple accept="image/*">
+                                </div>
+                                <div id="media-preview-container" class="preview-grid"></div>
+                            </div>
+                            <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">
+                                Submit Complaint <i class="fa-solid fa-circle-check"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Geotagging Map Selection -->
+                    <div class="glass-card" style="display: flex; flex-direction: column;">
+                        <h2 style="margin-bottom: 1rem;"><i class="fa-solid fa-location-crosshairs" style="color: var(--primary);"></i> Pin Exact Location</h2>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Click on the map below or use your device's live GPS receiver to set coordinates.</p>
+                        
+                        <div id="pin-map" class="map-widget" style="flex: 1; min-height: 250px;"></div>
+                        
+                        <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button type="button" class="btn-secondary" id="gps-locate-btn" style="flex: 1; min-width: 130px; padding: 0.50rem 0.75rem; font-size: 0.85rem;">
+                                <i class="fa-solid fa-location-arrow"></i> Use Live GPS
+                            </button>
+                            <button type="button" class="btn-secondary" id="gps-track-btn" style="flex: 1; min-width: 130px; padding: 0.50rem 0.75rem; font-size: 0.85rem;">
+                                <i class="fa-solid fa-satellite-dish"></i> Live Tracking: OFF
+                            </button>
+                            <button type="button" class="btn-secondary" id="open-streetview-btn" style="flex: 1; min-width: 140px; padding: 0.50rem 0.75rem; font-size: 0.85rem; background: rgba(234, 67, 53, 0.1); border-color: rgba(234, 67, 53, 0.3); color: #f87171;">
+                                <i class="fa-solid fa-street-view" style="color: #ea4335;"></i> Street View (360°)
+                            </button>
+                        </div>
+                        <div style="margin-top: 1rem; font-size: 0.85rem; background: var(--input-bg); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--card-border);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
+                                <div><b>Latitude:</b> <span id="coord-lat" style="color: var(--secondary);">0.0</span> | <b>Longitude:</b> <span id="coord-lng" style="color: var(--secondary);">0.0</span></div>
+                                <span id="gps-accuracy-badge" style="font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3);">GPS Ready</span>
+                            </div>
+                            <p style="margin-bottom: 0.5rem;"><b>Estimated Address:</b> <span id="coord-address" style="color: var(--text-secondary);">Select on map</span></p>
+                            <div class="form-group" style="margin-bottom: 0; display: flex; gap: 0.5rem;">
+                                <input class="form-control" type="text" id="manual-address" placeholder="Or type address manually" style="font-size: 0.85rem; padding: 0.4rem; flex: 1;">
+                                <button type="button" class="btn-secondary" id="set-manual-address-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; width: auto; margin: 0;">Set</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- C. My Complaints List Section -->
+            <section id="section-my-complaints" class="page-section" style="display: none;">
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                        <h2><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Filed Complaints Registry</h2>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <select id="filter-complaints-status" class="form-control" style="width: auto; min-width: 140px; padding: 0.4rem 0.8rem;">
+                                <option value="All">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Assigned">Assigned</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Resolved">Resolved</option>
+                                <option value="Reopened">Reopened</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="full-complaints-list" style="display: flex; flex-direction: column;">
+                        <p style="text-align: center; color: var(--text-muted); padding: 3rem;">Loading filed records...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- D. Detailed Complaint View and Tracking Timeline -->
+            <section id="section-complaint-detail" class="page-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <button type="button" class="btn-secondary" id="detail-back-btn" style="padding: 0.5rem 1rem; width: auto; font-size: 0.9rem; margin: 0;">
+                        <i class="fa-solid fa-arrow-left"></i> Return to Registry
+                    </button>
+                    <button type="button" class="btn-secondary" id="detail-delete-btn" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--critical); padding: 0.5rem 1rem; width: auto; font-size: 0.9rem; margin: 0; display: none;">
+                        <i class="fa-solid fa-trash"></i> Delete Complaint
+                    </button>
+                </div>
+                <div class="dashboard-grid" style="grid-template-columns: 3fr 2fr;">
+                    <!-- Left Side Details -->
+                    <div class="glass-card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                            <div>
+                                <span id="detail-unique-id" class="badge" style="background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); font-size: 0.9rem; margin-bottom: 0.5rem; display: inline-block;">CC-20260625-XXXX</span>
+                                <h2 id="detail-title" style="font-size: 1.6rem; font-weight: 700;">Issue Title Placeholder</h2>
+                            </div>
+                            <span id="detail-status-badge" class="badge">Pending</span>
+                        </div>
+
+                        <div class="complaint-subtitle" style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem;">
+                            <span><b>Category:</b> <span id="detail-category">Roads</span></span>
+                            <span><b>Priority:</b> <span id="detail-priority-badge" class="badge">Medium</span></span>
+                            <span><b>Created:</b> <span id="detail-created-at">2026-06-25</span></span>
+                        </div>
+
+                        <h4 style="margin-bottom: 0.5rem;">Description</h4>
+                        <p id="detail-description" style="line-height: 1.6; margin-bottom: 1.5rem; color: var(--text-secondary);"></p>
+
+                        <h4 style="margin-bottom: 0.5rem;">Supporting Media Attached</h4>
+                        <div id="detail-media-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                            <p style="color: var(--text-muted); font-style: italic; font-size: 0.9rem;">No media attached.</p>
+                        </div>
+
+                        <!-- Department and Officer Section -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; border-top: 1px solid var(--card-border); padding-top: 1.5rem; background: rgba(0, 0, 0, 0.05); border-radius: 8px; padding: 1rem;">
+                            <div>
+                                <h4 style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Assigned Department</h4>
+                                <p id="detail-department" style="font-weight: 600; font-size: 1rem; margin-top: 0.2rem;">Sanitation Department</p>
+                            </div>
+                            <div>
+                                <h4 style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Assigned Officer</h4>
+                                <p id="detail-officer" style="font-weight: 600; font-size: 1rem; margin-top: 0.2rem;">Officer John Doe</p>
+                                <p id="detail-officer-phone" style="font-size: 0.85rem; color: var(--text-secondary);"></p>
+                            </div>
+                        </div>
+
+                        <div id="detail-remarks-container" style="margin-top: 1.5rem; border-top: 1px solid var(--card-border); padding-top: 1.5rem; display: none;">
+                            <h4 style="margin-bottom: 0.5rem;">Resolution Remarks</h4>
+                            <p id="detail-remarks" style="line-height: 1.5; color: var(--success); font-style: italic;"></p>
+                            <div id="detail-resolution-proof" style="margin-top: 1rem; max-width: 300px; border-radius: 8px; overflow: hidden; display: none;"></div>
+                        </div>
+
+                        <!-- Feedback Rating Form (Shown only if Resolved and not rated yet) -->
+                        <div id="feedback-section" class="glass-card" style="margin-top: 2rem; border-color: var(--success); display: none;">
+                            <h3><i class="fa-solid fa-circle-question" style="color: var(--success);"></i> Rate Resolution Quality</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Please share your feedback. Your ratings help optimize municipal service speeds.</p>
+                            <div class="star-rating" id="star-rating-widget" style="margin-bottom: 1rem;">
+                                <i class="fa-solid fa-star" data-value="1"></i>
+                                <i class="fa-solid fa-star" data-value="2"></i>
+                                <i class="fa-solid fa-star" data-value="3"></i>
+                                <i class="fa-solid fa-star" data-value="4"></i>
+                                <i class="fa-solid fa-star" data-value="5"></i>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="feedback-comments">Comments</label>
+                                <textarea class="form-control" id="feedback-comments" placeholder="Write reviews here..."></textarea>
+                            </div>
+                            <button type="button" class="btn-primary" id="feedback-submit-btn" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+                                Submit Feedback
+                            </button>
+                        </div>
+
+                        <!-- Reopen Option (Shown only if status is Resolved) -->
+                        <div id="reopen-section" style="margin-top: 1.5rem; display: none;">
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">If this issue was not properly resolved, you can request to reopen it.</p>
+                            <div class="form-group">
+                                <input class="form-control" type="text" id="reopen-reason" placeholder="State reason for reopening (e.g. Garbage was left on sidewalks)">
+                            </div>
+                            <button type="button" class="btn-secondary" id="reopen-submit-btn" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--critical); width: auto; font-size: 0.9rem; padding: 0.5rem 1rem;">
+                                Reopen Complaint <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Map and Progress History -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="glass-card">
+                            <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> Complaint Location</h3>
+                            <div id="detail-map" class="map-widget" style="height: 200px; margin-bottom: 0.5rem;"></div>
+                            <p id="detail-address" style="font-size: 0.85rem; text-align: center; color: var(--text-secondary);"></p>
+                            <button type="button" class="btn-secondary" id="detail-streetview-btn" style="margin-top: 0.5rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; background: rgba(234, 67, 53, 0.1); border-color: rgba(234, 67, 53, 0.3); color: #f87171;">
+                                <i class="fa-solid fa-street-view" style="color: #ea4335;"></i> Open Google Street View (360°)
+                            </button>
+                        </div>
+
+                        <div class="glass-card" style="flex: 1;">
+                            <h3><i class="fa-solid fa-timeline" style="color: var(--primary);"></i> Tracking Timeline</h3>
+                            <div class="timeline-container" id="timeline-list">
+                                <!-- Dynamic timeline nodes -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- E. Notifications Center Section -->
+            <section id="section-notifications" class="page-section" style="display: none;">
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2><i class="fa-solid fa-bell" style="color: var(--primary);"></i> Notification Center</h2>
+                        <button class="btn-secondary" id="notif-clear-all" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                            Clear All Read
+                        </button>
+                    </div>
+                    <div id="notifications-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <p style="text-align: center; color: var(--text-muted); padding: 3rem;">No notifications found.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- F. Profile Settings Section -->
+            <section id="section-profile" class="page-section" style="display: none;">
+                <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+                    <!-- User Details -->
+                    <div class="glass-card">
+                        <h2 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> Personal Profile Settings</h2>
+                        <form id="profile-form">
+                            <div class="form-group">
+                                <label class="form-label" for="profile-name">Full Name</label>
+                                <input class="form-control" type="text" id="profile-name" required autocomplete="name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="profile-email">Email Address (Locked)</label>
+                                <input class="form-control" type="email" id="profile-email" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="profile-phone">Phone Number</label>
+                                <input class="form-control" type="tel" id="profile-phone" required autocomplete="tel">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="profile-address">Resident Address</label>
+                                <input class="form-control" type="text" id="profile-address" required autocomplete="street-address">
+                            </div>
+                            <button type="submit" class="btn-primary" style="margin-top: 1rem;">
+                                Update Profile <i class="fa-solid fa-floppy-disk"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Password Management -->
+                    <div class="glass-card">
+                        <h2 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Modify Credentials</h2>
+                        <form id="password-form">
+                            <div class="form-group">
+                                <label class="form-label" for="pw-old">Current Password</label>
+                                <input class="form-control" type="password" id="pw-old" placeholder="••••••••" required autocomplete="current-password">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="pw-new">New Password</label>
+                                <input class="form-control" type="password" id="pw-new" placeholder="••••••••" required autocomplete="new-password">
+                            </div>
+                            <button type="submit" class="btn-primary" style="margin-top: 1rem;">
+                                Change Password <i class="fa-solid fa-lock-open"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- G. Complaint Map Section -->
+            <section id="section-map" class="page-section" style="display: none;">
+                <div class="glass-card">
+                    <h2 style="margin-bottom: 1rem;"><i class="fa-solid fa-map-location-dot" style="color: var(--primary);"></i> City-wide Issue Navigator Map</h2>
+                    <div id="dedicated-citizen-map" class="map-widget" style="height: 500px;"></div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 1rem;"><i class="fa-solid fa-circle-info"></i> Interactively browse all community issues. Double click any marker to view public logs.</p>
+                </div>
+            </section>
+
+            <!-- H. Feedback & Ratings Section -->
+            <section id="section-feedback" class="page-section" style="display: none;">
+                <div class="glass-card">
+                    <h2 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-star" style="color: var(--warning);"></i> Feedback & Satisfaction Ratings</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 2rem;">
+                        <div class="glass-card" style="padding: 1.5rem; text-align: center; background: rgba(255,255,255,0.02);">
+                            <h3 style="font-size: 1.1rem; color: var(--text-secondary);">Your Average Rating</h3>
+                            <p style="font-size: 3rem; font-weight: 800; color: var(--warning); margin: 0.5rem 0;" id="feedback-avg-score">5.0</p>
+                            <div style="color: var(--warning); font-size: 1.25rem;">★★★★★</div>
+                        </div>
+                        <div class="glass-card" style="padding: 1.5rem;">
+                            <h3>Recent Resolution Feedbacks</h3>
+                            <div id="feedback-history-list" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+                                <p style="color: var(--text-muted); font-style: italic;">No feedback responses recorded yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- I. AI Assistant Section -->
+            <section id="section-ai-assistant" class="page-section" style="display: none;">
+                <div class="glass-card" style="display: flex; flex-direction: column; height: 550px;">
+                    <div style="padding: 1rem; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-robot" style="font-size: 1.5rem; color: var(--primary);"></i>
+                        <div>
+                            <h3 style="margin: 0;">Smart Civic AI Assistant</h3>
+                            <span class="ai-pill" style="margin-top: 0.2rem;"><i class="fa-solid fa-bolt"></i> Powered by Antigravity AI</span>
+                        </div>
+                    </div>
+                    <div id="full-chat-messages" style="flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; background: rgba(0,0,0,0.15); border-radius: 6px;">
+                        <div class="chat-bubble bot">
+                            👋 Hello! I am the Smart Civic AI Assistant. How can I help you check municipal status, log details, or query complaints today?
+                        </div>
+                    </div>
+                    <form id="full-chat-input-form" style="padding: 1rem; border-top: 1px solid var(--card-border); display: flex; gap: 1rem; margin:0;">
+                        <input type="text" id="full-chat-input" class="form-control" style="border-radius: 20px;" placeholder="Ask anything about city operations..." required autocomplete="off">
+                        <button type="submit" class="btn-primary" style="width: auto; padding: 0 1.5rem; border-radius: 20px; margin:0;">Send <i class="fa-solid fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- J. Complaint History Section -->
+            <section id="section-history" class="page-section" style="display: none;">
+                <div class="glass-card">
+                    <h2 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i> Your Activity & Audit History</h2>
+                    <div class="timeline-container" id="user-audit-list">
+                        <p style="color: var(--text-muted); font-style: italic;">Loading account actions timeline...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- K. Settings Section -->
+            <section id="section-settings" class="page-section" style="display: none;">
+                <div class="glass-card">
+                    <h2 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-gears" style="color: var(--primary);"></i> Portal Preferences & Settings</h2>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div>
+                            <h3>Theme Mode</h3>
+                            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">Select your preferred viewing theme.</p>
+                            <select id="settings-theme" class="form-control" style="width: auto; min-width: 150px;">
+                                <option value="dark">Dark Slate</option>
+                                <option value="light">Light Glass</option>
+                            </select>
+                        </div>
+                        <div style="border-top: 1px solid var(--card-border); padding-top: 1.5rem;">
+                            <h3>Notification Preferences</h3>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer;">
+                                    <input type="checkbox" checked style="width: 16px; height: 16px;"> Push Alerts on Status Changes
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer;">
+                                    <input type="checkbox" checked style="width: 16px; height: 16px;"> Email Summaries for Resolved Tickets
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- L. Help & Support Section -->
+            <section id="section-help" class="page-section" style="display: none;">
+                <div class="glass-card">
+                    <h2 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-circle-question" style="color: var(--primary);"></i> Help & Customer Support</h2>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.01);">
+                            <h4>❓ How do I file a new complaint?</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">Go to the "Register Complaint" page, fill in the title, description, choose a category or select AI auto-detect, drop location coordinates on the map, and click submit.</p>
+                        </div>
+                        <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.01);">
+                            <h4>❓ Can I edit my complaint details after submission?</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">No, once submitted, complaints are immediately routed. If you need to withdraw it, you can delete it using the "Delete" option from the tracking screen.</p>
+                        </div>
+                        <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.01);">
+                            <h4>📞 Immediate Municipal Helpline Contacts</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">Emergency Operations: +91 80 2266 0000 | Smart Waste Management Cell: 1800 425 1111</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 3. AI Chatbot Widget -->
+    <div class="chatbot-toggle-btn" id="chat-toggle-btn">
+        <i class="fa-solid fa-robot"></i>
+    </div>
+
+    <div class="chatbot-widget" id="chat-widget">
+        <div class="chatbot-header">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-robot" style="font-size: 1.3rem;"></i>
+                <div>
+                    <h4 style="font-size: 0.95rem; font-weight: 700;">Civic Assistant</h4>
+                    <span class="ai-pill"><i class="fa-solid fa-bolt"></i> AI Agent</span>
+                </div>
+            </div>
+            <i class="fa-solid fa-xmark" id="chat-close-btn" style="cursor: pointer; font-size: 1.2rem;"></i>
+        </div>
+        <div class="chatbot-messages" id="chat-messages">
+            <div class="chat-bubble bot">
+                👋 Hello! I am the Smart Civic AI Assistant. You can ask me how to file complaints, enquire about department actions, or query status logs! Try typing your unique <b>Complaint ID</b>.
+            </div>
+        </div>
+        <form id="chat-input-form" class="chatbot-input-container">
+            <input type="text" id="chat-input" class="form-control" style="border-radius: 20px; font-size: 0.85rem;" placeholder="Ask anything..." required autocomplete="off">
+            <button type="submit" class="btn-primary" style="width: 40px; height: 40px; border-radius: 50%; padding: 0; flex-shrink: 0; box-shadow: none;">
+                <i class="fa-solid fa-paper-plane" style="font-size: 0.9rem;"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Javascript Libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+backend/__pycache__/
+backend/*/__pycache__/
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+backend/venv/
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
+
+# Uploaded media (keep folder, exclude uploaded citizen test files)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# OS & Editor generated files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env
+*.env
+
+# Temporary artifacts
+scratch/
