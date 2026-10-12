@@ -1038,8 +1038,9 @@ function initSubmitComplaintFlow() {
                     showToast(`AI Analysis: ${data.ai_analysis.details}`, 'info');
                 }
                 
+                const previewSrc = (data.file_url && (data.file_url.startsWith('http') || data.file_url.startsWith('data:') || data.file_url.startsWith('blob:'))) ? data.file_url : `${CONFIG.API_BASE_URL.replace('/api', '')}${data.file_url}`;
                 div.innerHTML = `
-                    <img src="${CONFIG.API_BASE_URL.replace('/api', '')}${data.file_url}" alt="preview">
+                    <img src="${previewSrc}" alt="preview">
                     ${aiBadge}
                     <button class="remove-btn" type="button" onclick="removeUploadedMedia('${data.file_url}', this)"><i class="fa-solid fa-xmark"></i></button>
                 `;
@@ -1219,7 +1220,7 @@ window.openComplaintDetail = async function(complaintId) {
             gallery.innerHTML = '';
             if (comp.images && comp.images.length > 0) {
                 comp.images.forEach(imgUrl => {
-                    const hostUrl = CONFIG.API_BASE_URL.replace('/api', '') + imgUrl;
+                    const hostUrl = (imgUrl && (imgUrl.startsWith('http') || imgUrl.startsWith('data:') || imgUrl.startsWith('blob:'))) ? imgUrl : CONFIG.API_BASE_URL.replace('/api', '') + imgUrl;
                     const img = document.createElement('img');
                     img.src = hostUrl;
                     img.style.width = '100%';
@@ -1241,7 +1242,8 @@ window.openComplaintDetail = async function(complaintId) {
                 
                 if (comp.resolution_proof) {
                     proofCont.style.display = 'block';
-                    proofCont.innerHTML = `<h5 style="margin-bottom:0.25rem;">Resolution Proof</h5><img src="${CONFIG.API_BASE_URL.replace('/api', '')}${comp.resolution_proof}" style="width:100%; border-radius:6px; cursor:pointer;" onclick="window.open(this.src)"/>`;
+                    const proofUrl = (comp.resolution_proof && (comp.resolution_proof.startsWith('http') || comp.resolution_proof.startsWith('data:') || comp.resolution_proof.startsWith('blob:'))) ? comp.resolution_proof : `${CONFIG.API_BASE_URL.replace('/api', '')}${comp.resolution_proof}`;
+                    proofCont.innerHTML = `<h5 style="margin-bottom:0.25rem;">Resolution Proof</h5><img src="${proofUrl}" style="width:100%; border-radius:6px; cursor:pointer;" onclick="window.open(this.src)"/>`;
                 } else {
                     proofCont.style.display = 'none';
                 }

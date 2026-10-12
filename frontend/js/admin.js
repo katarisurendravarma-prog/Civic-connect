@@ -753,7 +753,7 @@ window.openComplaintAction = async function(complaintId) {
             gallery.innerHTML = '';
             if (comp.images && comp.images.length > 0) {
                 comp.images.forEach(imgUrl => {
-                    const fullUrl = CONFIG.API_BASE_URL.replace('/api', '') + imgUrl;
+                    const fullUrl = (imgUrl && (imgUrl.startsWith('http') || imgUrl.startsWith('data:') || imgUrl.startsWith('blob:'))) ? imgUrl : CONFIG.API_BASE_URL.replace('/api', '') + imgUrl;
                     const img = document.createElement('img');
                     img.src = fullUrl;
                     img.style.width = '100%';
@@ -858,7 +858,8 @@ function initActionFormFlows() {
             const data = await res.json();
             if (res.ok) {
                 resolutionProofUrl = data.file_url;
-                document.getElementById('resolution-proof-preview').innerHTML = `<img src="${CONFIG.API_BASE_URL.replace('/api', '')}${resolutionProofUrl}" style="width:100%; border-radius:6px;"/>`;
+                const proofPreviewSrc = (resolutionProofUrl && (resolutionProofUrl.startsWith('http') || resolutionProofUrl.startsWith('data:') || resolutionProofUrl.startsWith('blob:'))) ? resolutionProofUrl : `${CONFIG.API_BASE_URL.replace('/api', '')}${resolutionProofUrl}`;
+                document.getElementById('resolution-proof-preview').innerHTML = `<img src="${proofPreviewSrc}" style="width:100%; border-radius:6px;"/>`;
                 showToast("Resolution proof uploaded successfully", "success");
             } else {
                 showToast(data.message, 'error');

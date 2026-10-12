@@ -55,6 +55,21 @@
             <p style="text-align: center; margin-top: 0.5rem; font-size: 0.85rem;">
                 <span id="to-forgot" style="color: var(--text-secondary); cursor: pointer; text-decoration: underline;">Forgot password?</span>
             </p>
+            <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
+                <p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Quick Demo Fill</p>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                    <button type="button" class="btn-secondary" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; cursor: pointer;" onclick="document.getElementById('login-email').value='jane@civic.gov'; document.getElementById('login-password').value='janePassword123';">
+                        <i class="fa-solid fa-user" style="color: #3b82f6;"></i> Citizen Jane
+                    </button>
+                    <button type="button" class="btn-secondary" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; cursor: pointer;" onclick="document.getElementById('login-email').value='varma@gmail.com'; document.getElementById('login-password').value='varma@123';">
+                        <i class="fa-solid fa-user-check" style="color: #10b981;"></i> Citizen Varma
+                    </button>
+                    <button type="button" class="btn-secondary" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; cursor: pointer;" onclick="document.getElementById('login-email').value='admin@civic.gov'; document.getElementById('login-password').value='adminPassword123';">
+                        <i class="fa-solid fa-crown" style="color: #f59e0b;"></i> Super Admin
+                    </button>
+                </div>
+            </div>
+
             <div style="text-align: center; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
                 <a href="admin.html" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500;">
                     <i class="fa-solid fa-user-shield" style="color: var(--primary);"></i> Admin & Official Login &rarr;
@@ -675,6 +690,7 @@
     <!-- Javascript Libraries -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="js/config.js"></script>
+    <script src="js/mock_backend.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

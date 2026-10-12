@@ -4,6 +4,30 @@
 
 ---
 
+## 🌐 Live Website (Direct Access)
+
+The project is hosted live on GitHub Pages with an **in-browser full-stack simulation engine**. Anyone visiting the website can test citizen filing, live maps, AI categorization, and the admin console with **zero server errors or login failures**:
+
+- 🔗 **Direct Live Website:** [https://katarisurendravarma-prog.github.io/Civic-connect/](https://katarisurendravarma-prog.github.io/Civic-connect/)
+- 👤 **Citizen Portal:** [https://katarisurendravarma-prog.github.io/Civic-connect/frontend/index.html](https://katarisurendravarma-prog.github.io/Civic-connect/frontend/index.html)
+- 🛡️ **Admin & Dispatch Console:** [https://katarisurendravarma-prog.github.io/Civic-connect/frontend/admin.html](https://katarisurendravarma-prog.github.io/Civic-connect/frontend/admin.html)
+
+---
+
+## 🔑 Demo Login Credentials
+
+You can use the 1-click **"Quick Demo Fill"** buttons on the login screen or use the following credentials:
+
+| Role | Email | Password | Access Area |
+|---|---|---|---|
+| 👑 **Super Admin** | `admin@civic.gov` | `adminPassword123` | Admin & Dispatch Console |
+| 🏢 **Department Officer** | `officer@civic.gov` | `officerPassword123` | Admin & Dispatch Console |
+| 👷 **Field Staff** | `staff@civic.gov` | `staffPassword123` | Admin & Dispatch Console |
+| 👤 **Citizen (Jane)** | `jane@civic.gov` | `janePassword123` | Citizen Portal |
+| 👤 **Citizen (Varma)** | `varma@gmail.com` | `varma@123` | Citizen Portal |
+
+---
+
 ## 🌟 Key Features
 
 ### 👤 Citizen Portal
@@ -58,19 +82,6 @@ python app.py
 
 #### 2. Open the Frontend
 Open `frontend/index.html` (Citizen Portal) or `frontend/admin.html` (Officer Console) in any web browser, or navigate to `http://localhost:5000` in your browser.
-
----
-
-## 🔑 Demo Login Credentials
-
-The database automatically seeds standard test profiles upon first boot:
-
-| Role | Email | Password |
-|---|---|---|
-| 👑 **Super Admin** | `admin@civic.gov` | `adminPassword123` |
-| 🏢 **Department Officer** | `officer@civic.gov` | `officerPassword123` |
-| 👷 **Field Staff** | `staff@civic.gov` | `staffPassword123` |
-| 👤 **Citizen** | `jane@civic.gov` | `janePassword123` |
 
 ---
 
